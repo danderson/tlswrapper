@@ -1,4 +1,4 @@
-package gofer
+package tls_server
 
 import (
 	"crypto/tls"
