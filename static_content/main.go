@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"bitbucket.org/danderson/tls_server"
+	server "gopkg.in/danderson/tls_server.v1"
 )
 
 var (
@@ -34,7 +34,7 @@ func main() {
 		http.Handle(path[0]+"/", http.FileServer(http.Dir(path[1])))
 	}
 
-	s := &tls_server.Server{
+	s := &server.Server{
 		HSTSDuration: *hstsDuration,
 	}
 	if err := s.LoadCertsFromDir(*certDir); err != nil {
