@@ -23,11 +23,9 @@ func getHostOnly(hostPort string) string {
 }
 
 type Server struct {
-	Handler         http.Handler  // handler to invoke, http.DefaultServeMux if nil
-	InsecureHandler http.Handler  // handler to invoke for requests to unrecognized hosts on the non-TLS port.
-	ReadTimeout     time.Duration // maximum duration before timing out read of the request
-	WriteTimeout    time.Duration // maximum duration before timing out write of the response
-	MaxHeaderBytes  int           // maximum size of request headers, DefaultMaxHeaderBytes if 0
+	Handler         http.Handler // handler to invoke, http.DefaultServeMux if nil
+	InsecureHandler http.Handler // handler to invoke for requests to unrecognized hosts on the non-TLS port.
+	MaxHeaderBytes  int          // maximum size of request headers, DefaultMaxHeaderBytes if 0
 
 	Certificates []tls.Certificate // certs to serve. Only requests to hosts with a cert will be passed to Handler.
 	HSTSDuration time.Duration     // how long browsers should force TLS.
@@ -109,8 +107,6 @@ func (s *Server) ListenAndServe(httpAddr, httpsAddr string) error {
 		s := &http.Server{
 			Addr:           httpAddr,
 			Handler:        http.HandlerFunc(s.serveRedirect),
-			ReadTimeout:    s.ReadTimeout,
-			WriteTimeout:   s.WriteTimeout,
 			MaxHeaderBytes: s.MaxHeaderBytes,
 		}
 		errCh <- s.Serve(httpListener)
@@ -120,8 +116,6 @@ func (s *Server) ListenAndServe(httpAddr, httpsAddr string) error {
 		s := &http.Server{
 			Addr:           httpsAddr,
 			Handler:        http.HandlerFunc(s.serveSecure),
-			ReadTimeout:    s.ReadTimeout,
-			WriteTimeout:   s.WriteTimeout,
 			MaxHeaderBytes: s.MaxHeaderBytes,
 			TLSConfig:      tlsConf,
 		}
