@@ -1,3 +1,23 @@
+// Package tlswrapper provides a simple combined HTTP/HTTPS server
+// that steers clients to HTTPS and pins them there with HSTS.
+//
+// It is meant as a near drop-in replacement for a net/http.Server. It
+// takes an http.Handler and a collection of TLS certs and keys. From
+// that, it will serve both an HTTP and an HTTPS port.
+//
+// On the HTTPS port, it uses SNI to serve the appropriate certificate
+// to clients, and passes requests through to the Handler. The passed
+// ResponseWriter is preloaded with an HSTS header, which - if not
+// deleted by the Handler - will instruct compliant browsers to always
+// use HTTPS for that request's domain.
+//
+// On the HTTP port, requests made to domains for which the Server has
+// a certificate are redirected to the HTTPS port. Requests to other
+// domains are passed to InsecureHandler if provided, or 404'd by
+// default.
+//
+// An sample static content server is available in the static_content
+// subdirectory.
 package tlswrapper // import "gopkg.in/danderson/tlswrapper.v1"
 
 import (
@@ -22,6 +42,9 @@ func getHostOnly(hostPort string) string {
 	}
 }
 
+// Server defines the parameters for running a combined HTTP/HTTPS
+// server. The zero value is valid, albeit useless (it'll 404 all
+// requests).
 type Server struct {
 	Handler         http.Handler // handler to invoke, http.DefaultServeMux if nil
 	InsecureHandler http.Handler // handler to invoke for requests to unrecognized hosts on the non-TLS port.
@@ -35,6 +58,9 @@ type Server struct {
 	hostRegex       *regexp.Regexp
 }
 
+// LoadCertsFromDir populates Certificates with cert/key pairs loaded
+// from disk. Every <name>.key with a corresponding <name>.pem will be
+// loaded as one tls.Certificate.
 func (s *Server) LoadCertsFromDir(certDir string) error {
 	list, err := ioutil.ReadDir(certDir)
 	if err != nil {
@@ -59,6 +85,9 @@ func (s *Server) LoadCertsFromDir(certDir string) error {
 	return nil
 }
 
+// ListenAndServe listens on the provided httpAddr and httpsAddr, then
+// calls Handler/InsecureHandler as explained in the package
+// docstring.
 func (s *Server) ListenAndServe(httpAddr, httpsAddr string) error {
 	_, port, err := net.SplitHostPort(httpsAddr)
 	if err == nil && port != "443" {
@@ -96,10 +125,6 @@ func (s *Server) ListenAndServe(httpAddr, httpsAddr string) error {
 		return err
 	}
 	defer httpsListener.Close()
-
-	if s.Handler == nil {
-		s.Handler = http.DefaultServeMux
-	}
 
 	errCh := make(chan error, 2)
 
@@ -151,5 +176,9 @@ func (s *Server) serveSecure(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Strict-Transport-Security", s.hstsValue)
-	s.Handler.ServeHTTP(w, r)
+	if s.Handler == nil {
+		http.DefaultServeMux.ServeHTTP(w, r)
+	} else {
+		s.Handler.ServeHTTP(w, r)
+	}
 }
