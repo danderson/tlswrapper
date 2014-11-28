@@ -68,7 +68,11 @@ func (s *Server) ListenAndServe(httpAddr, httpsAddr string) error {
 
 	s.hstsValue = fmt.Sprintf("max-age=%d", int64(s.HSTSDuration.Seconds()))
 
-	tlsConf := &tls.Config{Certificates: s.Certificates}
+	tlsConf := &tls.Config{
+		Certificates:             s.Certificates,
+		PreferServerCipherSuites: true,
+		MinVersion:               tls.VersionTLS10,
+	}
 	tlsConf.BuildNameToCertificate()
 
 	reStr := make([]string, 0, len(tlsConf.NameToCertificate))
