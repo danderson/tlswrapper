@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	server "gopkg.in/danderson/tls_server.v1"
+	server "gopkg.in/danderson/tlswrapper.v1"
 )
 
 var (

@@ -1,4 +1,4 @@
-package tls_server
+package tlswrapper // import "gopkg.in/danderson/tlswrapper.v1"
 
 import (
 	"crypto/tls"
