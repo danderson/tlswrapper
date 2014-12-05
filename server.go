@@ -176,6 +176,10 @@ func (s *Server) serveSecure(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Strict-Transport-Security", s.hstsValue)
+	w.Header().Set("Content-Security-Policy", "default-src 'self'; frame-src 'none'; object-src 'none'")
+	w.Header().Set("X-Frame-Options", "DENY")
+	w.Header().Set("X-Content-Type-Options", "nosniff")
+	w.Header().Set("X-XSS-Protection", "1; mode=block")
 	if s.Handler == nil {
 		http.DefaultServeMux.ServeHTTP(w, r)
 	} else {
