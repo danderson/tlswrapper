@@ -16,6 +16,12 @@
 // domains are passed to InsecureHandler if provided, or 404'd by
 // default.
 //
+// A few additional headers are also set to enforce stricter content
+// security policies by default: disallowing iframe and plugin
+// embedding, requiring same origin for other included content,
+// blocking certain XSS attacks, and preventing browsers from getting
+// creative with MIME type sniffing.
+//
 // An sample static content server is available in the static_content
 // subdirectory.
 package tlswrapper // import "gopkg.in/danderson/tlswrapper.v1"
